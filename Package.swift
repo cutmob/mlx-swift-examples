@@ -5,14 +5,14 @@ import PackageDescription
 
 let package = Package(
     name: "mlx-libraries",
-    platforms: [.macOS(.v14), .iOS(.v16)],
+    platforms: [.macOS(.v14), .iOS(.v17)],
     products: [
         .library(
             name: "MLXMNIST",
             targets: ["MLXMNIST"]),
         .library(
-            name: "StableDiffusion",
-            targets: ["StableDiffusion"]),
+            name: "MLXStableDiffusion",
+            targets: ["MLXStableDiffusion"]),
     ],
     dependencies: [
         .package(url: "https://github.com/ml-explore/mlx-swift", .upToNextMinor(from: "0.31.3")),
@@ -44,7 +44,7 @@ let package = Package(
             ]
         ),
         .target(
-            name: "StableDiffusion",
+            name: "MLXStableDiffusion",
             dependencies: [
                 .product(name: "MLX", package: "mlx-swift"),
                 .product(name: "MLXNN", package: "mlx-swift"),

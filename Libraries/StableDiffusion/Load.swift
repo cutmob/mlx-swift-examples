@@ -204,6 +204,94 @@ public struct StableDiffusionConfiguration: Sendable {
         }
     )
 
+    public static func stableDiffusionBase(
+        id: String,
+        unetConfig: String = "unet/config.json",
+        unetWeights: String = "unet/diffusion_pytorch_model.safetensors",
+        textEncoderConfig: String = "text_encoder/config.json",
+        textEncoderWeights: String = "text_encoder/model.safetensors",
+        vaeConfig: String = "vae/config.json",
+        vaeWeights: String = "vae/diffusion_pytorch_model.safetensors",
+        diffusionConfig: String = "scheduler/scheduler_config.json",
+        tokenizerVocabulary: String = "tokenizer/vocab.json",
+        tokenizerMerges: String = "tokenizer/merges.txt",
+        cfgWeight: Float = 7.5,
+        steps: Int = 50
+    ) -> StableDiffusionConfiguration {
+        StableDiffusionConfiguration(
+            id: id,
+            files: [
+                .unetConfig: unetConfig,
+                .unetWeights: unetWeights,
+                .textEncoderConfig: textEncoderConfig,
+                .textEncoderWeights: textEncoderWeights,
+                .vaeConfig: vaeConfig,
+                .vaeWeights: vaeWeights,
+                .diffusionConfig: diffusionConfig,
+                .tokenizerVocabulary: tokenizerVocabulary,
+                .tokenizerMerges: tokenizerMerges,
+            ],
+            defaultParameters: { EvaluateParameters(cfgWeight: cfgWeight, steps: steps) },
+            factory: { hub, sdConfiguration, loadConfiguration in
+                let sd = try StableDiffusionBase(
+                    hub: hub, configuration: sdConfiguration, dType: loadConfiguration.dType)
+                if loadConfiguration.quantize {
+                    quantize(model: sd.textEncoder, filter: { _, m in m is Linear })
+                    quantize(model: sd.unet, groupSize: 32, bits: 8)
+                }
+                return sd
+            }
+        )
+    }
+
+    public static func stableDiffusionXL(
+        id: String,
+        unetConfig: String = "unet/config.json",
+        unetWeights: String = "unet/diffusion_pytorch_model.safetensors",
+        textEncoderConfig: String = "text_encoder/config.json",
+        textEncoderWeights: String = "text_encoder/model.safetensors",
+        textEncoder2Config: String = "text_encoder_2/config.json",
+        textEncoder2Weights: String = "text_encoder_2/model.safetensors",
+        vaeConfig: String = "vae/config.json",
+        vaeWeights: String = "vae/diffusion_pytorch_model.safetensors",
+        diffusionConfig: String = "scheduler/scheduler_config.json",
+        tokenizerVocabulary: String = "tokenizer/vocab.json",
+        tokenizerMerges: String = "tokenizer/merges.txt",
+        tokenizer2Vocabulary: String = "tokenizer_2/vocab.json",
+        tokenizer2Merges: String = "tokenizer_2/merges.txt",
+        cfgWeight: Float = 0,
+        steps: Int = 2
+    ) -> StableDiffusionConfiguration {
+        StableDiffusionConfiguration(
+            id: id,
+            files: [
+                .unetConfig: unetConfig,
+                .unetWeights: unetWeights,
+                .textEncoderConfig: textEncoderConfig,
+                .textEncoderWeights: textEncoderWeights,
+                .textEncoderConfig2: textEncoder2Config,
+                .textEncoderWeights2: textEncoder2Weights,
+                .vaeConfig: vaeConfig,
+                .vaeWeights: vaeWeights,
+                .diffusionConfig: diffusionConfig,
+                .tokenizerVocabulary: tokenizerVocabulary,
+                .tokenizerMerges: tokenizerMerges,
+                .tokenizerVocabulary2: tokenizer2Vocabulary,
+                .tokenizerMerges2: tokenizer2Merges,
+            ],
+            defaultParameters: { EvaluateParameters(cfgWeight: cfgWeight, steps: steps) },
+            factory: { hub, sdConfiguration, loadConfiguration in
+                let sd = try StableDiffusionXL(
+                    hub: hub, configuration: sdConfiguration, dType: loadConfiguration.dType)
+                if loadConfiguration.quantize {
+                    quantize(model: sd.textEncoder, filter: { _, m in m is Linear })
+                    quantize(model: sd.textEncoder2, filter: { _, m in m is Linear })
+                    quantize(model: sd.unet, groupSize: 32, bits: 8)
+                }
+                return sd
+            }
+        )
+    }
 }
 
 // MARK: - Key Mapping
